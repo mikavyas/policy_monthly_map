@@ -30,14 +30,26 @@
   <script>
     mapboxgl.accessToken = 'pk.eyJ1IjoibWlrYXZ5YXMiLCJhIjoiY2xoczhjcDR1MGZqMzNjcW1scm1paTRpNyJ9.yYDAti9jKKB23RGPg8SeRA';
 
+    const ontarioBounds = [
+      [-95.1533, 41.6766], // SW corner
+      [-74.3433, 56.8562]  // NE corner
+    ];
+
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mikavyas/cmc1f7lvy01qm01s29oq4cv3a',
-      center: [-79.3832, 43.6532], // Toronto center coordinates
-      zoom: 12
+      center: [-79.3832, 43.6532], // Toronto center
+      zoom: 12,
+      maxBounds: ontarioBounds // restrict panning
     });
 
     let marker, popup;
+
+    function isWithinBounds(coords) {
+      const [lng, lat] = coords;
+      return lng >= ontarioBounds[0][0] && lng <= ontarioBounds[1][0]
+          && lat >= ontarioBounds[0][1] && lat <= ontarioBounds[1][1];
+    }
 
     document.getElementById('search').addEventListener('keydown', function (e) {
       if (e.key === 'Enter') {
@@ -51,6 +63,12 @@
             }
             const result = data.features[0];
             const coords = result.center;
+
+            if (!isWithinBounds(coords)) {
+              alert("Location is outside Ontario bounds.");
+              return;
+            }
+
             const placeName = result.place_name;
             addMarker(coords, placeName);
             map.flyTo({ center: coords, zoom: 14 });
@@ -60,6 +78,12 @@
 
     map.on('click', (e) => {
       const coords = [e.lngLat.lng, e.lngLat.lat];
+
+      if (!isWithinBounds(coords)) {
+        alert("Clicked location is outside Ontario bounds.");
+        return;
+      }
+
       fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${coords[0]},${coords[1]}.json?access_token=${mapboxgl.accessToken}`)
         .then(res => res.json())
         .then(data => {
