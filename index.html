@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Interactive Map (Click + Search) - Toronto</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    body { margin:0; padding:0; }
+    #map { position:absolute; top:40px; bottom:0; width:100%; }
+    #search {
+      position: absolute;
+      top: 5px;
+      left: 10px;
+      z-index: 1;
+      width: 300px;
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.15);
+    }
+  </style>
+</head>
+<body>
+  <input id="search" type="text" placeholder="Search a place in Toronto..." />
+  <div id='map'></div>
+
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoibWlrYXZ5YXMiLCJhIjoiY2xoczhjcDR1MGZqMzNjcW1scm1paTRpNyJ9.yYDAti9jKKB23RGPg8SeRA';
+
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mikavyas/cmc1cj62g01mu01s68nbe8phy',
+      center: [-79.3832, 43.6532], // Toronto center coordinates
+      zoom: 12
+    });
+
+    let marker, popup;
+
+    document.getElementById('search').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        const query = e.target.value;
+        fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxgl.accessToken}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.features.length === 0) {
+              alert("No results found.");
+              return;
+            }
+            const result = data.features[0];
+            const coords = result.center;
+            const placeName = result.place_name;
+            addMarker(coords, placeName);
+            map.flyTo({ center: coords, zoom: 14 });
+          });
+      }
+    });
+
+    map.on('click', (e) => {
+      const coords = [e.lngLat.lng, e.lngLat.lat];
+      fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${coords[0]},${coords[1]}.json?access_token=${mapboxgl.accessToken}`)
+        .then(res => res.json())
+        .then(data => {
+          const placeName = data.features[0]?.place_name || "Unknown location";
+          addMarker(coords, placeName);
+        });
+    });
+
+    function addMarker(coords, placeName) {
+      if (marker) marker.remove();
+      if (popup) popup.remove();
+
+      marker = new mapboxgl.Marker()
+        .setLngLat(coords)
+        .addTo(map);
+
+      popup = new mapboxgl.Popup({ closeButton: false, anchor: 'top' })
+        .setLngLat(coords)
+        .setHTML(`<p>${placeName}</p>`)
+        .addTo(map);
+    }
+  </script>
+</body>
+</html>
