@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Mapbox Ontario Bounded Map with Permanent Markers</title>
+  <title>Mapbox Toronto Bounded Map with Permanent Markers</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
   <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
@@ -30,31 +30,30 @@
   <script>
     mapboxgl.accessToken = 'pk.eyJ1IjoibWlrYXZ5YXMiLCJhIjoiY2xoczhjcDR1MGZqMzNjcW1scm1paTRpNyJ9.yYDAti9jKKB23RGPg8SeRA';
 
-    const ontarioBounds = [
-      [-95.1533, 41.6766], // SW corner
-      [-74.3433, 56.8562]  // NE corner
+    const torontoBounds = [
+      [-79.6393, 43.5810], // SW corner
+      [-79.1153, 43.8555]  // NE corner
     ];
 
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mikavyas/cmc1f7lvy01qm01s29oq4cv3a',
       center: [-79.3832, 43.6532], // Toronto center
-      zoom: 10,
-      maxBounds: ontarioBounds,
-      minZoom: 6,
+      zoom: 11,
+      maxBounds: torontoBounds,
+      minZoom: 10,
       maxZoom: 16
     });
 
     map.on('error', e => console.error('Mapbox error:', e.error));
 
-    // Arrays to store all markers and popups
     const markers = [];
     const popups = [];
 
     function isWithinBounds(coords) {
       const [lng, lat] = coords;
-      return lng >= ontarioBounds[0][0] && lng <= ontarioBounds[1][0]
-          && lat >= ontarioBounds[0][1] && lat <= ontarioBounds[1][1];
+      return lng >= torontoBounds[0][0] && lng <= torontoBounds[1][0]
+          && lat >= torontoBounds[0][1] && lat <= torontoBounds[1][1];
     }
 
     document.getElementById('search').addEventListener('keydown', function (e) {
@@ -71,7 +70,7 @@
             const coords = result.center;
 
             if (!isWithinBounds(coords)) {
-              alert("Location is outside Ontario bounds.");
+              alert("Location is outside Toronto bounds.");
               return;
             }
 
@@ -86,7 +85,7 @@
       const coords = [e.lngLat.lng, e.lngLat.lat];
 
       if (!isWithinBounds(coords)) {
-        alert("Clicked location is outside Ontario bounds.");
+        alert("Clicked location is outside Toronto bounds.");
         return;
       }
 
@@ -108,7 +107,7 @@
         .setHTML(`<p>${placeName}</p>`)
         .addTo(map);
 
-      newMarker.setPopup(newPopup);  // Popup opens on marker click
+      newMarker.setPopup(newPopup);
 
       markers.push(newMarker);
       popups.push(newPopup);
